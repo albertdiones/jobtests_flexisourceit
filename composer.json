@@ -1,0 +1,5 @@
+{
+    "require": {
+        "symfony/skeleton": "^5.2"
+    }
+}
