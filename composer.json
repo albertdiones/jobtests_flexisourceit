@@ -14,6 +14,8 @@
         "symfony/yaml": "5.2.*"
     },
     "require-dev": {
+        "sensio/framework-extra-bundle": "^6.0",
+        "symfony/maker-bundle": "^1.29"
     },
     "config": {
         "optimize-autoloader": true,
