@@ -3,12 +3,13 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\TenantRepository;
 
 /**
  * Tenants
  *
  * @ORM\Table(name="tenants", uniqueConstraints={@ORM\UniqueConstraint(name="idx_name", columns={"tenant_name"})}, indexes={@ORM\Index(name="idx_enabled", columns={"enabled"})})
- * @ORM\Entity
+ * @ORM\Entity(repositoryClass=TenantRepository::class)
  */
 class Tenants
 {
@@ -59,6 +60,16 @@ class Tenants
     public function getId(): ?int
     {
         return $this->id;
+    }
+    # added this manually for debugging, also I think it's also required for the repository to construct the entirty? I have yet to disover it
+    public function setId( int $id ) {
+        $this->id = $id;
+    }
+
+    # I don't like how it's a tenant and the field name mentions that again (tenant_name)
+    # So I'm going with "name"
+    public function getName() {
+        return $this->tenantName;
     }
 
     public function getTenantName(): ?string
