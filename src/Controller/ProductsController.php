@@ -2,6 +2,8 @@
 
 namespace App\Controller;
 
+use App\Entity\Categories;
+use App\Entity\Products;
 use App\Entity\Tenants;
 use App\Service\TenantService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -40,7 +42,22 @@ class ProductsController extends AbstractController
 
                 $this->tenantService->setActiveTenant($tenant);
                 $templateData['tenant'] = $this->tenantService->getActiveTenant();
-                $templateData['products'] = $this->tenantService->getActiveTenantProducts() ?: [];
+                $products = $this->tenantService->getActiveTenantProducts() ?: [];
+                $categories  = $this->tenantService->getActiveTenantCategories() ?: [];
+                $templateData['categoryProducts'] = [];
+                /** @var Categories $category */
+                foreach ($categories as $category) {
+                    /** @var Products $product */
+                    foreach ($products as $product) {
+                        $categoryProducts = &$templateData['categoryProducts'][$category->getName()];
+                        if ($category == $product->getCategory()) {
+                            if (!$categoryProducts) {
+                                $categoryProducts = [];
+                            }
+                            $categoryProducts[] = $product;
+                        }
+                    }
+                }
             }
         }
         catch (\Throwable $e) {

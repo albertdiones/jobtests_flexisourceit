@@ -136,4 +136,8 @@ class TenantService {
     public function getActiveTenantProducts() {
         return $this->productRepository->findBy(['enabled' => 1]);
     }
+
+    public function getActiveTenantCategories() {
+        return $this->categoryRepository->findBy(['enabled' => 1]);
+    }
 }
