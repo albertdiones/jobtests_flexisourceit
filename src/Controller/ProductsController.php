@@ -40,6 +40,7 @@ class ProductsController extends AbstractController
 
                 $this->tenantService->setActiveTenant($tenant);
                 $templateData['tenant'] = $this->tenantService->getActiveTenant();
+                $templateData['products'] = $this->tenantService->getActiveTenantProducts() ?: [];
             }
         }
         catch (\Throwable $e) {

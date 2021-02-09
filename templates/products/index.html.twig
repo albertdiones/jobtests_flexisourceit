@@ -19,5 +19,11 @@
         <div><button type="submit">Set Tenant ID</button></div>
     </form>
     <div>Current Active Tenant: {{ tenant.name|default("None") }}</div>
+    <h2>Products</h2>
+    <ol>
+        {% for product in products|default([]) %}
+            <li>{{ product.name }}</li>
+        {% endfor %}
+    </ol>
 </div>
 {% endblock %}

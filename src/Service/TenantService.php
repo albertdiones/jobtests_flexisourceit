@@ -9,6 +9,7 @@ use App\Repository\TenantRepository;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\DBAL\Connection;
 
@@ -17,6 +18,10 @@ class TenantService {
     private ?Tenants $activeTenant;
 
     const TENANT_DB_PREFIX = 'tenant_';
+
+    public ?EntityManagerInterface $tenantDbEntityManager;
+    public ?EntityRepository $productRepository;
+    public ?EntityRepository $categoryRepository;
 
     # Connection: https://stackoverflow.com/questions/6939214/how-do-you-access-doctrine-dbal-in-a-symfony2-service-class
     public function __construct(
@@ -47,11 +52,22 @@ class TenantService {
 
     public function setActiveTenant( Tenants $tenant) {
         $this->activeTenant = $tenant;
-        $this->checkTenantDb($tenant);
+        $this->tenantDbEntityManager = $this->createNewEmTenantDb($tenant);
+        $this->productRepository = new EntityRepository(
+            $this->tenantDbEntityManager,
+            $this->tenantDbEntityManager->getClassMetadata(Products::class)
+        );
+        $this->categoryRepository = new EntityRepository(
+            $this->tenantDbEntityManager,
+            $this->tenantDbEntityManager->getClassMetadata(Categories::class)
+        );
     }
 
     public function unsetActiveTenant() {
         $this->activeTenant = null;
+        $this->tenantDbEntityManager = null;
+        $this->productRepository = null;
+        $this->categoryRepository = null;
     }
 
     private function checkTenantDb(Tenants $tenant) {
@@ -93,6 +109,17 @@ class TenantService {
 
         # https://stackoverflow.com/questions/36306923/dynamic-databases-and-schema-creation-in-symfony-doctrine
         $this->connection->getSchemaManager()->createDatabase($tenantDb);
+        $newEm = $this->createNewEmTenantDb($tenant);
+        $classMetas = [
+            $this->entityManager->getClassMetadata(Products::class),
+            $this->entityManager->getClassMetadata(Categories::class),
+        ];
+
+        $tool = new SchemaTool($newEm);
+        $tool->createSchema($classMetas);
+    }
+
+    private function createNewEmTenantDb( Tenants $tenant ) {
 
         # For additional security you can create a new mysql user for each tenant or user
         # But I don't have time for that
@@ -101,15 +128,12 @@ class TenantService {
             'driver' => $params['driver'],
             'host' => $params['host'],
             'user' => $params['user'],
-            'dbname' => $tenantDb
+            'dbname' => $tenant->getTenantDb()
         );
-        $newEm = EntityManager::create($tenantDbParameters,$this->entityManager->getConfiguration(), $this->entityManager->getEventManager());
-        $classMetas = [
-            $this->entityManager->getClassMetadata(Products::class),
-            $this->entityManager->getClassMetadata(Categories::class),
-        ];
+        return EntityManager::create($tenantDbParameters,$this->entityManager->getConfiguration(), $this->entityManager->getEventManager());
+    }
 
-        $tool = new SchemaTool($newEm);
-        $tool->createSchema($classMetas);
+    public function getActiveTenantProducts() {
+        return $this->productRepository->findBy(['enabled' => 1]);
     }
 }
