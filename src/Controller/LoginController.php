@@ -17,7 +17,7 @@ class LoginController extends AbstractController
     {
         if ($this->getUser()) {
             # todo: create the products homepage
-             return $this->redirectToRoute('index');
+             return $this->redirectToRoute('products');
         }
 
         // get the login error if there is one

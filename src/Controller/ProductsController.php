@@ -85,12 +85,15 @@ class ProductsController extends AbstractController
             # I think there's a formtype method for extracting this, but I'll figure it out later if I still have time
             # I also think I should check the csrf token using the formtype
             $requestCategory = $request->request->get('category');
+            if (!$requestCategory) {
+                throw new \UnexpectedValueException("Category data is blank");
+            }
+            if (empty($requestCategory['tenant_id'])) {
+                throw new \UnexpectedValueException("Tenant id is blank");
+            }
 
             if (!$this->setTenantId($requestCategory['tenant_id'])) {
                 throw new \Exception("Failed to set tenant id");
-            }
-            if (!$requestCategory) {
-                throw new \UnexpectedValueException("Category data is blank");
             }
 
             $newCategory = new Categories();
@@ -104,7 +107,7 @@ class ProductsController extends AbstractController
         }
         catch (\Exception $e) {
             $templateData['exception'] = $e;
-            $templateData['message'] = $e->getMessage();
+            $templateData['message'] = $e->getMessage().' on file '.$e->getFile().':'.$e->getLine();
             $templateData['message_type'] = 'error';
         }
 
@@ -159,7 +162,7 @@ class ProductsController extends AbstractController
             if (!$this->setTenantId($requestProduct['tenant_id'])) {
                 throw new \Exception("Failed to set tenant id");
             }
-            if (!$requestProduct['category_id']) {
+            if (empty($requestProduct['category_id'])) {
                 throw new \Exception("Category Id is blank");
             }
             $requestCategory = $this->tenantService->getCategoryById($requestProduct['category_id']);

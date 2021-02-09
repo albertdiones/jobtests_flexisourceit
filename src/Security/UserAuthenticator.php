@@ -4,6 +4,7 @@ namespace App\Security;
 
 use App\Entity\Users;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -48,6 +49,15 @@ class UserAuthenticator extends AbstractFormLoginAuthenticator
             'password' => $request->request->get('password'),
             'csrf_token' => $request->request->get('_csrf_token'),
         ];
+
+        # https://symfonycasts.com/screencast/symfony-security/api-token-authenticator
+        # I'm guessing I should create a new authenticator for this but I think I spent enough time on this test
+        $authorizationHeader = $request->headers->get('Authorization');
+        if ($authorizationHeader
+            && strpos($authorizationHeader, 'Bearer ') === 0) {
+            $credentials['header_bearer_token'] = substr($authorizationHeader, 7);
+        }
+
         $request->getSession()->set(
             Security::LAST_USERNAME,
             $credentials['email']
@@ -58,12 +68,23 @@ class UserAuthenticator extends AbstractFormLoginAuthenticator
 
     public function getUser($credentials, UserProviderInterface $userProvider)
     {
-        $token = new CsrfToken('authenticate', $credentials['csrf_token']);
-        if (!$this->csrfTokenManager->isTokenValid($token)) {
-            throw new InvalidCsrfTokenException();
-        }
 
-        $user = $this->entityManager->getRepository(Users::class)->findOneBy(['email' => $credentials['email']]);
+        $userRepository = $this->entityManager->getRepository(Users::class);
+        if (isset($credentials['header_bearer_token'])) {
+            # I should encrypt this api key assymetrically like a private key so it is not exposed
+            $user = $userRepository->findOneBy(['api_key' => $credentials['header_bearer_token']]);
+            return $user;
+        }
+// I have to disable this while I have no solution for getting the api key via postman
+//
+// I thought of enabling this only on browser, but does it make sense security wise?
+//        $token = new CsrfToken('authenticate', $credentials['csrf_token']);
+//        if (!$this->csrfTokenManager->isTokenValid($token)) {
+//            throw new InvalidCsrfTokenException();
+//        }
+
+
+        $user = $userRepository->findOneBy(['email' => $credentials['email']]);
 
         if (!$user) {
             // fail authentication with a custom error
@@ -75,6 +96,11 @@ class UserAuthenticator extends AbstractFormLoginAuthenticator
 
     public function checkCredentials($credentials, UserInterface $user)
     {
+        if (isset($credentials['header_bearer_token'])
+            && $user instanceof Users
+            && $credentials['header_bearer_token'] === $user->getApiKey()) {
+            return true;
+        }
         if ($user->getPassword() === sha1($credentials['password'])) {
             return true;
         }
@@ -83,6 +109,13 @@ class UserAuthenticator extends AbstractFormLoginAuthenticator
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $providerKey)
     {
+
+        if (in_array('application/json', $request->getAcceptableContentTypes())) {
+            return new JsonResponse([
+                'api_key' => $token->getUser()->getApiKey()
+            ]);
+        }
+
         if ($targetPath = $this->getTargetPath($request->getSession(), $providerKey)) {
             return new RedirectResponse($targetPath);
         }
