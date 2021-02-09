@@ -33,10 +33,10 @@ class ProductsController extends AbstractController
 
 
                 // todo: fetch it from the database
-                //$tenant = $this->tenantService->getTenantById($tenantId);
-                $tenant = new Tenants();
-                $tenant->setId($tenantId);
-                $tenant->setTenantName("Dummy tenant #$tenantId");
+                $tenant = $this->tenantService->getTenantById($tenantId);
+                if (!$tenant) {
+                    $tenant = $this->tenantService->createNewTenant("New Tenant #$tenantId", $tenantId);
+                }
 
                 $this->tenantService->setActiveTenant($tenant);
                 $templateData['tenant'] = $this->tenantService->getActiveTenant();

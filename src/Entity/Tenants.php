@@ -18,7 +18,7 @@ class Tenants
      *
      * @ORM\Column(name="id", type="integer", nullable=false)
      * @ORM\Id
-     * @ORM\GeneratedValue(strategy="IDENTITY")
+     * I have to remove the generate value annotation because I don't wanna randomize the db name
      */
     private $id;
 

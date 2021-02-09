@@ -47,4 +47,9 @@ class TenantRepository extends ServiceEntityRepository
         ;
     }
     */
+
+    public function save(Tenants $tenant) : void {
+        $this->_em->persist($tenant);
+        $this->_em->flush();
+    }
 }
