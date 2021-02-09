@@ -1,10 +1,16 @@
 <?php
 namespace App\Service;
 
+use App\Entity\Categories;
+use App\Entity\Products;
 use App\Entity\Tenants;
 use App\Entity\Users;
 use App\Repository\TenantRepository;
 use Doctrine\Common\Collections\Criteria;
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Tools\SchemaTool;
+use Doctrine\DBAL\Connection;
 
 class TenantService {
 
@@ -12,10 +18,15 @@ class TenantService {
 
     const TENANT_DB_PREFIX = 'tenant_';
 
+    # Connection: https://stackoverflow.com/questions/6939214/how-do-you-access-doctrine-dbal-in-a-symfony2-service-class
     public function __construct(
-        TenantRepository $tenantRepository
+        TenantRepository $tenantRepository,
+        Connection $connection,
+        EntityManagerInterface $entityManager
     ) {
         $this->tenantRepository = $tenantRepository;
+        $this->connection = $connection;
+        $this->entityManager = $entityManager;
     }
 
     # Since I'm coding on a newly set up machine, I haven't set the auto code-formatting yet
@@ -71,8 +82,34 @@ class TenantService {
 
         # Take note that the `tenant_name` field is unique constrained
         $tenant = $this->tenantRepository->findOneBy(['tenantName' => $name]);
-        //$this->createTenantDb($tenant);
+        $this->createTenantDb($tenant);
 
         return $tenant;
+    }
+
+    private function createTenantDb(Tenants $tenant) {
+
+        $tenantDb = $tenant->getTenantDb();
+
+        # https://stackoverflow.com/questions/36306923/dynamic-databases-and-schema-creation-in-symfony-doctrine
+        $this->connection->getSchemaManager()->createDatabase($tenantDb);
+
+        # For additional security you can create a new mysql user for each tenant or user
+        # But I don't have time for that
+        $params = $this->connection->getParams();
+        $tenantDbParameters = array(
+            'driver' => $params['driver'],
+            'host' => $params['host'],
+            'user' => $params['user'],
+            'dbname' => $tenantDb
+        );
+        $newEm = EntityManager::create($tenantDbParameters,$this->entityManager->getConfiguration(), $this->entityManager->getEventManager());
+        $classMetas = [
+            $this->entityManager->getClassMetadata(Products::class),
+            $this->entityManager->getClassMetadata(Categories::class),
+        ];
+
+        $tool = new SchemaTool($newEm);
+        $tool->createSchema($classMetas);
     }
 }

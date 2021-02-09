@@ -5,12 +5,12 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * Users
+ * Products
  *
- * @ORM\Table(name="users", uniqueConstraints={@ORM\UniqueConstraint(name="idx_apikey", columns={"api_key"}), @ORM\UniqueConstraint(name="idx_username", columns={"email"}), @ORM\UniqueConstraint(name="idx_username_pass", columns={"email", "password"})}, indexes={@ORM\Index(name="idx_enabled", columns={"enabled"})})
+ * @ORM\Table(name="products", uniqueConstraints={@ORM\UniqueConstraint(name="idx_name", columns={"name"})}, indexes={@ORM\Index(name="category_id", columns={"category_id"}), @ORM\Index(name="idx_enabled", columns={"enabled"})})
  * @ORM\Entity
  */
-class Users
+class Products
 {
     /**
      * @var int
@@ -24,23 +24,16 @@ class Users
     /**
      * @var string
      *
-     * @ORM\Column(name="email", type="string", length=64, nullable=false)
+     * @ORM\Column(name="name", type="string", length=256, nullable=false)
      */
-    private $email;
+    private $name;
 
     /**
      * @var string
      *
-     * @ORM\Column(name="password", type="string", length=128, nullable=false)
+     * @ORM\Column(name="price", type="decimal", precision=10, scale=0, nullable=false)
      */
-    private $password;
-
-    /**
-     * @var string|null
-     *
-     * @ORM\Column(name="api_key", type="string", length=128, nullable=true)
-     */
-    private $apiKey;
+    private $price;
 
     /**
      * @var \DateTime
@@ -59,9 +52,19 @@ class Users
     /**
      * @var bool
      *
-     * @ORM\Column(name="enabled", type="boolean", nullable=false, options={"default"="b'1'"})
+     * @ORM\Column(name="enabled", type="boolean", nullable=false, options={"default"=1})
      */
-    private $enabled = 'b\'1\'';
+    private $enabled = true;
+
+    /**
+     * @var \Categories
+     *
+     * @ORM\ManyToOne(targetEntity="Categories")
+     * @ORM\JoinColumns({
+     *   @ORM\JoinColumn(name="category_id", referencedColumnName="id")
+     * })
+     */
+    private $category;
 
 
 }

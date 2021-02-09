@@ -32,7 +32,7 @@ final class Version20210209094109 extends AbstractMigration
                 NULL,
                 `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 `last_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                `enabled` bit(1) NOT NULL DEFAULT b'1',
+                `enabled` bit(1) NOT NULL DEFAULT 1,
                 PRIMARY KEY (`id`),
                 UNIQUE KEY `idx_name` (`name`),
                 KEY `idx_enabled` (`enabled`)
@@ -48,7 +48,7 @@ SQL
                 `category_id` int NOT NULL,
                 `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 `last_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                `enabled` bit(1) NOT NULL DEFAULT b'1',
+                `enabled` bit(1) NOT NULL DEFAULT 1,
                 PRIMARY KEY (`id`),
                 UNIQUE KEY `idx_name` (`name`),
                 KEY `idx_enabled` (`enabled`),
