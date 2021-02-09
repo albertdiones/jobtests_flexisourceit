@@ -88,7 +88,6 @@ class UserAuthenticator extends AbstractFormLoginAuthenticator
         }
 
 
-        # todo: create the products homepage
         return new RedirectResponse("/products");
     }
 
