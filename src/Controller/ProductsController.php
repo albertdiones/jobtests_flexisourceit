@@ -35,6 +35,7 @@ class ProductsController extends AbstractController
 
         try {
 
+            $templateData['allTenants'] = $this->tenantService->getAllTenants();
             if (!$this->setTenantId($tenantId)) {
                 throw new \Exception("Failed to set tenant id");
             }

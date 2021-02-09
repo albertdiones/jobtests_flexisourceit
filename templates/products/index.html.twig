@@ -8,6 +8,18 @@
     .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
     div.message { font-size:12px; font-weight:bold; color:#666; }
     div.message.error { color:red; font-size:10px; }
+    label {
+        display:block;
+        font-size:0.8em;
+        color:gray;
+    }
+    label * {
+        font-size:1rem;
+    }
+    h1, h2, h3 {
+        margin-top:2em;
+        margin-bottom:0;
+    }
 </style>
 
 <div class="example-wrapper">
@@ -16,10 +28,23 @@
         <div class="error">{{ error.message }}</div>
     {% endif %}
     <form>
-        <div>Tenant ID: <input name="tenant_id" type="number" value="{{ tenant.id|default("") }}"/></div>
+        <label>Tenant ID: <input name="tenant_id" type="number" value="{{ tenant.id|default("") }}"/></label>
         <div><small>If the tenant id doesn't exist, it will be created</small></div>
         <div><button type="submit">Set Tenant ID</button></div>
     </form>
+    {% if allTenants|default(false) %}
+    Or select from the existing tenants:
+    <form>
+        <label>Tenant Name:
+        <select name="tenant_id">
+            {% for tenant in allTenants %}
+                <option value="{{ tenant.id }}">{{ tenant.name }}</option>
+            {% endfor %}
+        </select>
+        </label>
+        <div><button type="submit">Set Tenant</button></div>
+    </form>
+    {% endif %}
     <div>Current Active Tenant: {{ tenant.name|default("None") }}</div>
     {% if newCategoryForm|default(false) %}
         <h2>Create New Category</h2>
@@ -38,6 +63,8 @@
                 {% endfor %}
                 </ul>
             </li>
+        {% else %}
+            <li>No categories/products yet</li>
         {% endfor %}
     </ol>
 </div>

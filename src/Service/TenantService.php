@@ -144,4 +144,8 @@ class TenantService {
     public function saveCategory(Categories $category) {
         return $this->categoryRepository->save($category);
     }
+
+    public function getAllTenants() {
+        return $this->tenantRepository->findAll();
+    }
 }
