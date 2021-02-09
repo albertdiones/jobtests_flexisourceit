@@ -6,6 +6,7 @@ use App\Entity\Categories;
 use App\Entity\Products;
 use App\Entity\Tenants;
 use App\Form\Type\CategoryForm;
+use App\Form\Type\ProductForm;
 use App\Service\TenantService;
 use http\Exception\UnexpectedValueException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -40,6 +41,7 @@ class ProductsController extends AbstractController
                 throw new \Exception("Failed to set tenant id");
             }
             $templateData['newCategoryForm'] = $this->createForm(CategoryForm::class,['tenant_id' => $tenantId ],['method' => 'POST'])->createView();
+            $templateData['newProductForm'] = $this->createForm(ProductForm::class,['method' => 'POST'])->createView();
             $templateData['tenant'] = $this->tenantService->getActiveTenant();
             $templateData['categoryProducts'] = $this->getCategoryProducts();
         }
@@ -135,5 +137,61 @@ class ProductsController extends AbstractController
             return true;
         }
         return false;
+    }
+
+    #[Route('/products/', name: 'products_new',methods:['POST'])]
+    public function newProductAction(Request $request) {
+
+        try {
+            $templateData = [
+                'message' => 'Creating new product...',
+                'message_type' => 'unknown'
+            ];
+
+
+            # I think there's a formtype method for extracting this, but I'll figure it out later if I still have time
+            # I also think I should check the csrf token using the formtype
+            $requestProduct = $request->request->get('product');
+
+            if (!$requestProduct) {
+                throw new \UnexpectedValueException("Category data is blank");
+            }
+            if (!$this->setTenantId($requestProduct['tenant_id'])) {
+                throw new \Exception("Failed to set tenant id");
+            }
+            if (!$requestProduct['category_id']) {
+                throw new \Exception("Category Id is blank");
+            }
+            $requestCategory = $this->tenantService->getCategoryById($requestProduct['category_id']);
+
+            $newProduct = new Products();
+            $newProduct->setLastUpdated(new \DateTimeImmutable());
+            $newProduct->setDateCreated(new \DateTimeImmutable());
+            $newProduct->setName($requestProduct['name']);
+            $newProduct->setCategory($requestCategory);
+            $newProduct->setPrice($requestProduct['price']);
+            $this->tenantService->saveProduct($newProduct);
+            $templateData['message'] = 'Successfully create new product';
+            $templateData['message_type'] = 'success';
+            $templateData['redirect'] = $this->generateUrl('products').'?tenant_id='.$requestProduct['tenant_id'];
+        }
+        catch (\Exception $e) {
+            $templateData['exception'] = $e;
+            $templateData['message'] = $e->getMessage();
+            $templateData['message_type'] = 'error';
+        }
+
+
+        # Might as well support json early on because I'm gonna make it API ready soon anyway
+        if ($this->isJsonRequest($request)) {
+            return new JsonResponse([
+                "message" => $templateData['message'],
+                "message_type" => $templateData['message_type'],
+                "redirect" => $templateData['redirect'] ?? null
+            ],$templateData['message_type'] == 'error' ? 500 : 200);
+        }
+        else {
+            return $this->render('products/index.html.twig', $templateData);
+        }
     }
 }

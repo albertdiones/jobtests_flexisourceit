@@ -3,12 +3,13 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\ProductRepository;
 
 /**
  * Products
  *
  * @ORM\Table(name="products", uniqueConstraints={@ORM\UniqueConstraint(name="idx_name", columns={"name"})}, indexes={@ORM\Index(name="category_id", columns={"category_id"}), @ORM\Index(name="idx_enabled", columns={"enabled"})})
- * @ORM\Entity
+ * @ORM\Entity(repositoryClass=ProductRepository::class)
  */
 class Products
 {

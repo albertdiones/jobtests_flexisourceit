@@ -6,6 +6,7 @@ use App\Entity\Products;
 use App\Entity\Tenants;
 use App\Entity\Users;
 use App\Repository\CategoryRepository;
+use App\Repository\ProductRepository;
 use App\Repository\TenantRepository;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityManager;
@@ -54,9 +55,8 @@ class TenantService {
     public function setActiveTenant( Tenants $tenant) {
         $this->activeTenant = $tenant;
         $this->tenantDbEntityManager = $this->createNewEmTenantDb($tenant);
-        $this->productRepository = new EntityRepository(
-            $this->tenantDbEntityManager,
-            $this->tenantDbEntityManager->getClassMetadata(Products::class)
+        $this->productRepository = new ProductRepository(
+            $this->tenantDbEntityManager
         );
         $this->categoryRepository = new CategoryRepository(
             $this->tenantDbEntityManager
@@ -141,8 +141,16 @@ class TenantService {
         return $this->categoryRepository->findBy(['enabled' => 1]);
     }
 
+    public function getCategoryById( int $id ) {
+        return $this->categoryRepository->findOneBy(['id' => $id]);
+    }
+
     public function saveCategory(Categories $category) {
         return $this->categoryRepository->save($category);
+    }
+
+    public function saveProduct(Products $product) {
+        return $this->productRepository->save($product);
     }
 
     public function getAllTenants() {

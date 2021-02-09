@@ -51,8 +51,8 @@ class CategoryRepository extends EntityRepository
     }
     */
 
-    public function save(Categories $tenant) : void {
-        $this->_em->persist($tenant);
+    public function save(Categories $category) : void {
+        $this->_em->persist($category);
         $this->_em->flush();
     }
 }
