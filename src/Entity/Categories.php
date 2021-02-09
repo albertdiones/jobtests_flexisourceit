@@ -3,12 +3,13 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\CategoryRepository;
 
 /**
  * Categories
  *
  * @ORM\Table(name="categories", uniqueConstraints={@ORM\UniqueConstraint(name="idx_name", columns={"name"})}, indexes={@ORM\Index(name="idx_enabled", columns={"enabled"})})
- * @ORM\Entity
+ * @ORM\Entity(repositoryClass=CategoryRepository::class)
  */
 class Categories
 {

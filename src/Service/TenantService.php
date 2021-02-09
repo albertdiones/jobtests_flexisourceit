@@ -5,6 +5,7 @@ use App\Entity\Categories;
 use App\Entity\Products;
 use App\Entity\Tenants;
 use App\Entity\Users;
+use App\Repository\CategoryRepository;
 use App\Repository\TenantRepository;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityManager;
@@ -57,9 +58,8 @@ class TenantService {
             $this->tenantDbEntityManager,
             $this->tenantDbEntityManager->getClassMetadata(Products::class)
         );
-        $this->categoryRepository = new EntityRepository(
-            $this->tenantDbEntityManager,
-            $this->tenantDbEntityManager->getClassMetadata(Categories::class)
+        $this->categoryRepository = new CategoryRepository(
+            $this->tenantDbEntityManager
         );
     }
 
@@ -139,5 +139,9 @@ class TenantService {
 
     public function getActiveTenantCategories() {
         return $this->categoryRepository->findBy(['enabled' => 1]);
+    }
+
+    public function saveCategory(Categories $category) {
+        return $this->categoryRepository->save($category);
     }
 }

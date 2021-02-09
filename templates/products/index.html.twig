@@ -6,6 +6,8 @@
 <style>
     .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
     .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
+    div.message { font-size:12px; font-weight:bold; color:#666; }
+    div.message.error { color:red; font-size:10px; }
 </style>
 
 <div class="example-wrapper">
@@ -19,10 +21,17 @@
         <div><button type="submit">Set Tenant ID</button></div>
     </form>
     <div>Current Active Tenant: {{ tenant.name|default("None") }}</div>
-    <h2>Products</h2>
+    {% if newCategoryForm|default(false) %}
+        <h2>Create New Category</h2>
+        {{ form_start(newCategoryForm, {'attr': {'novalidate': 'novalidate','class':'ajax'}}) }}
+            {{ form_widget(newCategoryForm) }}
+            <button type="submit">Add New Category</button>
+        {{ form_end(newCategoryForm) }}
+    {% endif %}
+    <h2>Categories/Products</h2>
     <ol>
         {% for categoryName,products in categoryProducts|default([]) %}
-            <li>{{ categoryName}}
+            <li>{{ categoryName }} ( {{ products|length }} Products )
                 <ul>
                 {% for product in products|default([]) %}
                     <li>{{ product.name }}</li>
@@ -32,4 +41,57 @@
         {% endfor %}
     </ol>
 </div>
+<script>
+    document.querySelectorAll('form.ajax').forEach( function(el) {
+            el.addEventListener(
+                'submit',
+                function(e) {
+                    e.preventDefault();
+                    let form = this;
+                    appendFormMessage(form,"Loading...","loading");
+                    let requestBody = new URLSearchParams();
+                    new FormData(form).forEach(function(value, key){
+                        requestBody.append(key, value)
+                    });
+                    // https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
+                    fetch(
+                        form.getAttribute('action'),
+                        {
+                        method: form.getAttribute('method'), // *GET, POST, PUT, DELETE, etc.
+                        mode: 'cors', // no-cors, *cors, same-origin
+                        cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+                        credentials: 'same-origin', // include, *same-origin, omit
+                        headers: {
+                            'Accept': 'application/json',
+                        },
+                        redirect: 'error', // manual, *follow, error
+                        referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+                        body: requestBody
+                    }).then(response => response.json())
+                        .then(
+                        function(data) {
+                            appendFormMessage(form,data.message, data.message_type ?? 'message');
+                            if (data.redirect) {
+                                setTimeout( function () { location.href = data.redirect; }, 2000);
+                            }
+                        }
+                    ).catch(function(e) {
+                        appendFormMessage(form,e,'error');
+                    })
+                }
+            );
+        }
+    );
+    function  appendFormMessage(form,message,messageType) {
+        let messageDiv = form.querySelector('div.message');
+        if (!messageDiv) {
+            messageDiv = document.createElement('div');
+            form.prepend(messageDiv);
+        }
+        // set the new div as message class, and also clear other classes
+        messageDiv.setAttribute('class','message')
+        messageDiv.classList.add(messageType);
+        messageDiv.innerText = message;
+    }
+</script>
 {% endblock %}
