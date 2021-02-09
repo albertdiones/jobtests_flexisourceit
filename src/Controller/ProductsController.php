@@ -98,6 +98,7 @@ class ProductsController extends AbstractController
             $this->tenantService->saveCategory($newCategory);
             $templateData['message'] = 'Successfully create new category';
             $templateData['message_type'] = 'success';
+            $templateData['redirect'] = $this->generateUrl('products').'?tenant_id='.$requestCategory['tenant_id'];
         }
         catch (\Exception $e) {
             $templateData['exception'] = $e;
@@ -111,6 +112,7 @@ class ProductsController extends AbstractController
             return new JsonResponse([
                 "message" => $templateData['message'],
                 "message_type" => $templateData['message_type'],
+                "redirect" => $templateData['redirect'] ?? null
             ],$templateData['message_type'] == 'error' ? 500 : 200);
         }
         else {

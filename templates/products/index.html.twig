@@ -34,11 +34,11 @@
     </form>
     {% if allTenants|default(false) %}
     Or select from the existing tenants:
-    <form>
+    <form class="autoSubmit">
         <label>Tenant Name:
         <select name="tenant_id">
-            {% for tenant in allTenants %}
-                <option value="{{ tenant.id }}">{{ tenant.name }}</option>
+            {% for availableTenant in allTenants %}
+                <option value="{{ availableTenant.id }}" {% if availableTenant.id == tenant.id %}selected{% endif %}>{{ availableTenant.name }}</option>
             {% endfor %}
         </select>
         </label>
@@ -99,7 +99,7 @@
                         function(data) {
                             appendFormMessage(form,data.message, data.message_type ?? 'message');
                             if (data.redirect) {
-                                setTimeout( function () { location.href = data.redirect; }, 2000);
+                                setTimeout( function () { appendFormMessage(form,"Redirecting","message"); location.href = data.redirect; }, 2000);
                             }
                         }
                     ).catch(function(e) {
@@ -107,6 +107,11 @@
                     })
                 }
             );
+        }
+    );
+    document.querySelectorAll('form.autoSubmit').forEach(
+        function(el) {
+            el.addEventListener('change', function() { el.submit() });
         }
     );
     function  appendFormMessage(form,message,messageType) {
