@@ -9,3 +9,5 @@ I missed the part where they provided a remote db so I created my own. And also 
 
 Since I haven't created Symfony application from scratch, I had to google most of these. Most source are commented.
 Most of the things that I commented on usually using hash(#) are things I did for expedience
+
+To run on your local, just run the symfony cli command for running it as local web server
